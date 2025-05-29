@@ -6,6 +6,7 @@ const multer = require("multer");
 const sharp = require("sharp");
 const app = express();
 const fs = require("fs");
+const path=require("path")
 const { categoryRouter } = require("./routes/category.routes");
 const { productRouter } = require("./routes/product.routes");
 const { cardRouter } = require("./routes/card.routes");
@@ -15,6 +16,10 @@ const { aboutRouter } = require("./routes/about.routes");
 const { newsRouter } = require("./routes/news.routes");
 const { broucherRouter } = require("./routes/broucher.routes");
 const { inquiryRouter } = require("./routes/inquiry.routes");
+const { annualRouter } = require("./routes/annualScheme.routes");
+const { outletRouter } = require("./routes/outlet.routes");
+const { navbarRouter } = require("./routes/navbar.routes");
+const { viewRouter } = require("./routes/view.routes");
 app.use(express.json());
 require("dotenv").config();
 app.use(cors({ origin: true }));
@@ -29,7 +34,7 @@ const storage = multer.diskStorage({
   },
 });
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === "image/png") {
+  if (file.mimetype ) {
     cb(null, true);
   } else {
     cb(null, false);
@@ -49,6 +54,32 @@ const upload = multer({
   fileFilter,
   limits: { fileSize: 500 * 1024 },
 });
+
+const uploadQr=multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, "./public/payment");
+    },
+    filename: (req, file, cb) => {
+      cb(null, `${Date.now()}-${file.originalname}`);
+    },
+    fileFilter,
+  }),
+})
+
+const uploadEvent=multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, "./public/news");
+    },
+    filename: (req, file, cb) => {
+      cb(null, `${Date.now()}-${file.originalname}`);
+    },
+    
+    
+  }),
+})
+
 const upload1 = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
@@ -118,6 +149,85 @@ app.use("/", aboutRouter);
 app.use("/", newsRouter);
 app.use("/",broucherRouter)
 app.use("/",inquiryRouter)
+app.use("/",annualRouter)
+app.use("/",outletRouter)
+app.use("/",navbarRouter)
+app.use("/",viewRouter)
+
+app.get('/downloadContact', (req, res) => {
+  let {name,number}=req.query
+
+  // Create vCard content
+  const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL:${number}\nEND:VCARD`;
+
+  // Set appropriate headers for vCard download
+  res.header('Content-type', 'text/plain');
+   res.header('Content-Disposition', 'attachment; filename="contact.vcf"');
+
+  // Output vCard content
+  res.send(vcard);
+});
+
+app.post("/news/album", uploadEvent.array("album"), async (req, res)=>{
+  
+  try {
+    let arr=[]
+    console.log(req.files); // empty array
+    for(let file of req.files) {
+      let metadata=await sharp(file.path).metadata()
+      let width = metadata.width;
+      console.log(width);
+      let height = metadata.height;
+      console.log(height);
+      if(width && height){
+        arr.push(file.filename)
+      }
+      console.log(arr,"arr");
+  }
+  res.send({
+    msg:"Images Uploaded",
+    data:arr,
+    status:res.statusCode
+  })
+
+  } catch (error) {
+    res.send({
+            msg: error.message,
+             error: error,
+         });
+  }
+})
+
+
+app.post("/payment/qr", uploadQr.array("qr"), async (req, res)=>{
+  
+  try {
+    let arr=[]
+    console.log(req.files); // empty array
+    for(let file of req.files) {
+      let metadata=await sharp(file.path).metadata()
+      let width = metadata.width;
+      console.log(width);
+      let height = metadata.height;
+      console.log(height);
+      if(width && height){
+        arr.push(file.filename)
+      }
+      console.log(arr,"arr");
+  }
+  res.send({
+    msg:"Images Uploaded",
+    data:arr,
+    status:res.statusCode
+  })
+
+  } catch (error) {
+    res.send({
+            msg: error.message,
+             error: error,
+         });
+  }
+})
 
 app.post("/broucher/pdf",upload5.single("broucher"),async(req,res)=>{
   console.log(req.file);

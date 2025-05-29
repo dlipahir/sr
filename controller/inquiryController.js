@@ -70,7 +70,7 @@ exports.getInquiry=async(req,res)=>{
   let {page}=req.query
   try {
     if(page){
-      let data=  await ContactModel.find().skip((page-1)*12).limit(12)
+      let data=  await ContactModel.find().sort({ createdAt: -1 }).skip((page-1)*12).limit(12)
       res.send({
         msg:"Data Archieved Successfully",
         data,

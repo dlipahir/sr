@@ -32,6 +32,9 @@ const productSchema=new mongoose.Schema({
     },
     specification:{
         type:Object
+    },
+    price:{
+        type:String
     }
 },options)
 

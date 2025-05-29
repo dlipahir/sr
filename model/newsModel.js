@@ -22,6 +22,12 @@ const newsSchema=new mongoose.Schema({
     place:{
         type:String,
         require:true
+    },
+    video:{
+        type:String
+    },
+    album:{
+        type:Array
     }
 },options)
 

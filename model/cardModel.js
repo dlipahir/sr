@@ -80,6 +80,22 @@ const CardSchema = new mongoose.Schema({
   },
   insta_link:{
     type:String
+  },
+  views:{
+    type:Number,
+    default:0
+  },
+  generated_name:{
+    type:String
+  },
+  company_name:{
+    type:String
+  },
+  company_link:{
+    type:String
+  },
+  qr_code:{
+    type:Array
   }
 
 },options);
