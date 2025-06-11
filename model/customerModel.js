@@ -20,9 +20,13 @@ const options = {
       type:String,
       require:true
     },
-    product:{
-        type:mongoose.Types.ObjectId,
-        ref:"Product",
+    // product:{
+    //     type:mongoose.Types.ObjectId,
+    //     ref:"Product",
+    //     require:true
+    //   },
+    productID:{
+        type:String,
         require:true
       },
       DoPurchase:{
@@ -40,7 +44,21 @@ const options = {
     Message:{
         type:String,
         require:false
+    },
+  complaints: [{
+    complainDate: {
+      type: String,
+      required: true
+    },
+    problem: {
+      type: String,
+      required: true
+    },
+    resolveDate: {
+      type: String,
+      required: false
     }
+  }],
 
   },options)
 

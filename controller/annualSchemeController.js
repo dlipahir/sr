@@ -29,6 +29,153 @@ exports.addManager=async(req,res)=>{
         })
     }
 }
+exports.getCustomerById=async(req,res)=>{
+    try {
+        let data=await CustomerModel.findById(req.params.id)
+        res.send({
+            msg:"Customer Updated Successfully",
+            data,
+            status:res.statusCode
+        })
+    } catch (error) {
+        res.send({
+            msg:error.message,
+            error
+        })
+    }
+}
+exports.addComplaint = async (req, res) => {
+    try {
+        // const { id } = req.params;
+        const { complaint ,id} = req.body;
+
+        if (!complaint) {
+            return res.status(400).send({
+                msg: "Complaint is required",
+                status: res.statusCode
+            });
+        }
+
+        const customer = await CustomerModel.findById(id);
+        if (!customer) {
+            return res.status(404).send({
+                msg: "Customer not found",
+                status: res.statusCode
+            });
+        }
+
+        // Add complaint to customer's complaints array
+        customer.complaints = customer.complaints || [];
+        customer.complaints.push({
+            problem: complaint,
+            complainDate: new Date(),
+            resolveDate:null
+        });
+
+        await customer.save();
+
+        res.send({
+            msg: "Complaint added successfully",
+            data: customer,
+            status: res.statusCode
+        });
+
+    } catch (error) {
+        res.status(500).send({
+            msg: error.message,
+            error
+        });
+    }
+}
+
+exports.addResolutionDate = async (req, res) => {
+    try {
+        const { id, complaintId } = req.params;
+        const resolutionDate = new Date().toISOString().split('T')[0];
+
+        if (!resolutionDate) {
+            return res.status(400).send({
+                msg: "Resolution date is required",
+                status: res.statusCode
+            });
+        }
+
+        const customer = await CustomerModel.findById(id);
+        if (!customer) {
+            return res.status(404).send({
+                msg: "Customer not found",
+                status: res.statusCode
+            });
+        }
+
+        // Find the specific complaint and update its resolution date
+        const complaint = customer.complaints.id(complaintId);
+        if (!complaint) {
+            return res.status(404).send({
+                msg: "Complaint not found",
+                status: res.statusCode
+            });
+        }
+
+        complaint.resolveDate = new Date(resolutionDate);
+        await customer.save();
+
+        res.send({
+            msg: "Resolution date added successfully",
+            data: customer,
+            status: res.statusCode
+        });
+
+    } catch (error) {
+        res.status(500).send({
+            msg: error.message,
+            error
+        });
+    }
+}
+
+exports.deleteCustomer = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const customer = await CustomerModel.findByIdAndDelete(id);
+        
+        if (!customer) {
+            return res.status(404).send({
+                msg: "Customer not found",
+                status: res.statusCode
+            });
+        }
+
+        res.send({
+            msg: "Customer deleted successfully",
+            data: customer,
+            status: res.statusCode
+        });
+
+    } catch (error) {
+        res.status(500).send({
+            msg: error.message,
+            error
+        });
+    }
+}
+
+exports.editCustomer=async(req,res)=>{
+    try {
+        let data=await CustomerModel.findByIdAndUpdate(req.params.id,req.body,{new:true})
+        res.send({
+            msg:"Customer Updated Successfully",
+            data,
+            status:res.statusCode
+        })
+    } catch (error) {
+        res.send({
+            msg:error.message,
+            error
+        })
+    }
+}
 exports.addCustomer=async(req,res)=>{
     try {
         let exist=await CustomerModel.findOne({name:req.body.invoiceno})
@@ -39,7 +186,7 @@ exports.addCustomer=async(req,res)=>{
             })
         }
         else{
-            let customer = {name:req.body.name,Mobile:req.body.mobile,Invoice:req.body.invoiceno,product:req.body.product,DoPurchase:req.body.dopurchase,DOExpiry:req.body.doexpiry,Address:req.body.address,Message:''}
+            let customer = {name:req.body.name,Mobile:req.body.mobile,Invoice:req.body.invoiceno,productID:req.body.product,DoPurchase:req.body.dopurchase,DOExpiry:req.body.doexpiry,Address:req.body.address,Message:''}
             // console.log('customer',customer)
             let data=await CustomerModel(customer)
             await data.save()
@@ -62,14 +209,14 @@ exports.getCustomer=async(req,res)=>{
     let {page}=req.query
     try {
         if(page){
-            let data=await CustomerModel.find().skip((page-1)*12).limit(12).populate('product')
+            let data=await CustomerModel.find().skip((page-1)*12).limit(12)
             res.send({
                 msg:"Customer Archived Successfully",
                 data,
                 status:res.statusCode       
             })
         }else{
-            let data=await CustomerModel.find().populate('product')
+            let data=await CustomerModel.find()
             res.send({
                 msg:"Customer Archived Successfully",
                 data,
@@ -83,7 +230,44 @@ exports.getCustomer=async(req,res)=>{
         })
     }
 }
+exports.getcomplaintCustomer=async(req,res)=>{
 
+    let {page}=req.query
+    try {
+        if(page){
+            let data=await CustomerModel.find({
+                complaints: {
+                  $elemMatch: {
+                    resolveDate: null
+                  }
+                }
+              }).skip((page-1)*12).limit(12)
+            res.send({
+                msg:"Customer Archived Successfully",
+                data,
+                status:res.statusCode       
+            })
+        }else{
+            let data=await CustomerModel.find({
+                complaints: {
+                  $elemMatch: {
+                    resolveDate: null
+                  }
+                }
+              })
+            res.send({
+                msg:"Customer Archived Successfully",
+                data,
+                status:res.statusCode       
+            })
+        }
+    } catch (error) {
+        res.send({
+            msg:error.message,
+            error
+        })
+    }
+}
 
 
 exports.getManager=async(req,res)=>{
@@ -321,9 +505,9 @@ exports.login=async(req,res)=>{
 exports.loginv2=async(req,res)=>{
     let {product,invoice}=req.body
     try {
-        let exist=await CustomerModel.findOne({Invoice:invoice,product:product})
+        let exist=await CustomerModel.findOne({Invoice:invoice,productID:product})
         if(exist){
-            let data=await CustomerModel.findOne({Invoice:invoice,product:product}).populate('product')
+            let data=await CustomerModel.findOne({Invoice:invoice,productID:product})
             if(data){
                 res.send({
                     data,

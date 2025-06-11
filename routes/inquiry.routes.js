@@ -5,6 +5,7 @@ const express=require("express")
    inquiryRouter.post("/contact",inquiryController.contact)
    inquiryRouter.get("/contact/detail",inquiryController.getInquiry)
    inquiryRouter.get("/contact/detail/:id",inquiryController.getInquiryDetail)
+   inquiryRouter.delete("/contact/detail/:id",inquiryController.deleteInquiry)
    inquiryRouter.get("/contact/:name",inquiryController.searchInquiry)
  module.exports={
     inquiryRouter

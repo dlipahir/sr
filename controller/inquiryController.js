@@ -93,6 +93,30 @@ exports.getInquiry=async(req,res)=>{
   }
 }
 
+
+exports.deleteInquiry = async (req, res) => {
+  let { id } = req.params;
+  try {
+    let data = await ContactModel.findByIdAndDelete(id);
+    if (!data) {
+      return res.status(404).send({
+        msg: "Inquiry not found",
+        status: res.statusCode
+      });
+    }
+    res.send({
+      msg: "Inquiry deleted successfully",
+      data,
+      status: res.statusCode
+    });
+  } catch (error) {
+    res.send({
+      msg: error.message,
+      error
+    });
+  }
+};
+
 exports.getInquiryDetail=async(req,res)=>{
   let  {id}=req.params
   try {
