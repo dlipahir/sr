@@ -163,7 +163,7 @@ exports.deleteCustomer = async (req, res) => {
 
 exports.editCustomer=async(req,res)=>{
     try {
-        let data=await CustomerModel.findByIdAndUpdate(req.params.id,req.body,{new:true})
+        let data=await CustomerModel.findByIdAndUpdate(req.params.id, {name:req.body.name,Mobile:req.body.mobile,Invoice:req.body.invoiceno,productID:req.body.product,DoPurchase:req.body.dopurchase,DOExpiry:req.body.doexpiry,Address:req.body.address,Message:''},{new:true})
         res.send({
             msg:"Customer Updated Successfully",
             data,
